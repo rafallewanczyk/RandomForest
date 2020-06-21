@@ -17,10 +17,9 @@ class DecisionTree():
     def build_tree(self, data_interval, parent=None, attribute_state=None):
         classes = data_interval['class'].unique().tolist()
         data_len = len(data_interval)
-        # attribute = (self.best_attribute(
-        #     DataFrame(random.sample(data_interval.values.tolist(), k=random.randint(int(data_len / 2), data_len - 1)),
-        #               columns=data_interval.columns), self.total_entropy(data_interval)), self.counter)
-        attribute = (self.best_attribute(data_interval, self.total_entropy(data_interval)), self.counter)
+        attribute = (self.best_attribute(
+            DataFrame(random.sample(data_interval.values.tolist(), k=random.randint(int(data_len / 3), data_len - 1)),
+                      columns=data_interval.columns), self.total_entropy(data_interval)), self.counter)
         self.counter += 1
 
         if attribute[0] == "":
@@ -79,33 +78,13 @@ class DecisionTree():
         return gains
 
     def best_attribute(self, data_interval, entropy):
+        best_parameter, best_gain = '', 0
         information_gains = self.information_gains(data_interval, entropy)
-
-        gains_probabilities = self.calculate_probabilities(information_gains)
-        if len(gains_probabilities) == 0: return ''
-
-        for probability in gains_probabilities:
-            if probability[1] < self.threshold:
-                del information_gains[probability[0]]
-
-        gains_probabilities = self.calculate_probabilities(information_gains)
-        if len(gains_probabilities) == 0: return ''
-
-        lottery = random.random()
-        temp_sum = 0
-        for parameter in gains_probabilities:
-            temp_sum += parameter[1]
-            if lottery < temp_sum:
-                return parameter[0]
-
-    def calculate_probabilities(self, information_gains):
-        gains_probabilities = []
-        gains_sum = sum(information_gains.values())
-        if gains_sum == 0: return []
         for parameter in information_gains.keys():
-            odds = information_gains[parameter] / gains_sum
-            gains_probabilities.append((parameter, odds))
-        return gains_probabilities
+            if information_gains[parameter] > best_gain:
+                best_gain = information_gains[parameter]
+                best_parameter = parameter
+        return best_parameter
 
     def predict(self, data_interval, attribute=None):
         if attribute == None: attribute = self.root
@@ -121,7 +100,7 @@ class DecisionTree():
         columns = validation_data.columns.tolist()
         error_ratio = 0
         for row in record_list:
-            answer = self.predict(DataFrame([row[1::]], columns=columns[1::]))
+            answer = self.predict(DataFrame([row[:-1]], columns=columns[:-1]))
             try:
                 error_ratio += answer.split(":")[0] != row[0]
             except AttributeError:

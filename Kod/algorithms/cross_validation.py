@@ -4,7 +4,7 @@ from .randomForest import RandomForest
 from pandas import DataFrame
 from statistics import mean
 
-def cross_validation(data, names, k, num_of_trees, threshold, min_data_size):
+def cross_validation(data, names, k, num_of_trees, threshold, min_data_size, tree):
     objects_number = len(data)
     lines_step = objects_number / k
     validation_start = 0
@@ -29,7 +29,8 @@ def cross_validation(data, names, k, num_of_trees, threshold, min_data_size):
         validation_start += lines_step
         validation_stop += lines_step
 
-        forest = RandomForest(num_of_trees, threshold, train_frame, min_data_size)
+        # print(f"validation nr{i}")
+        forest = RandomForest(num_of_trees, threshold, train_frame, min_data_size, tree)
 
         error = forest.validate(validation_frame)
         error_ratios.append(error)
